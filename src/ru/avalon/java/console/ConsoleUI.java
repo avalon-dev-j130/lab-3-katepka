@@ -1,6 +1,10 @@
 package ru.avalon.java.console;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.util.Scanner;
+import ru.avalon.java.Commands;
+import ru.avalon.java.IllegalCommand;
 
 /**
  * Класс описывает текстовый человеко-машинный интерфейс.
@@ -9,7 +13,7 @@ import java.io.IOException;
  * @param <E> тип данных, описывающий возможные команды.
  *            Дожен быть перечислением
  */
-public class ConsoleUI<E extends Enum<E>> extends EnumReader<E> implements Runnable {
+public class ConsoleUI implements Runnable, Closeable {
     /**
      * Флаг, указывающий на то, должен ли интерфейс
      * продолжать обрабатывать команды.
@@ -25,9 +29,9 @@ public class ConsoleUI<E extends Enum<E>> extends EnumReader<E> implements Runna
      * @param cls описатель перечисления, которое отражает
      *            набор команд, обрабатываемых интерфейсом
      */
-    public ConsoleUI(Class<E> cls) {
-        super(System.in, cls);
-    }
+//    public ConsoleUI(Class<E> cls) {
+//        super(System.in, cls);
+//    }
 
     /**
      * Выполняет обработку следующей команды из потока.
@@ -38,10 +42,14 @@ public class ConsoleUI<E extends Enum<E>> extends EnumReader<E> implements Runna
      */
     protected void processCommand() {
         try {
+            Scanner sc = new Scanner(System.in);
             System.out.print("> ");
-            onCommand(next());
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
+            String commandStr = sc.nextLine();
+            onCommand(new Commands(commandStr));
+        } catch (IllegalCommand ex) {
+            System.out.print("Команда не распознана");
+        } catch (IOException ex) {
+            System.out.println("Ошибка ввода-вывода");
         }
     }
 
@@ -64,7 +72,7 @@ public class ConsoleUI<E extends Enum<E>> extends EnumReader<E> implements Runna
      * 
      * @throws IOException в случае ощибки ввода вывода
      */
-    protected void onCommand(E command) throws IOException {}
+    protected void onCommand(Commands command) throws IOException {}
 
     /**
      * {@inheritDoc}
